@@ -74,6 +74,9 @@ public class ProfTransformer implements ClassFileTransformer {
 		if (loader != null && ProfFilter.isNotNeedInjectClassLoader(loader.getClass().getName())) {
 			return classfileBuffer;
 		}
+		if(className == null){
+			return classfileBuffer;
+		}
 
 		//如果可以注入mysql成功；则不再继续注入
 		byte[] temp = transform4Mysql(loader, className, classBeingRedefined, protectionDomain, classfileBuffer);
@@ -97,7 +100,7 @@ public class ProfTransformer implements ClassFileTransformer {
 			ClassReader reader = new ClassReader(classfileBuffer);
 			ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 			ClassAdapter adapter = new ProfClassAdapter(writer, className);
-			reader.accept(adapter, 0);
+			reader.(adapter, 0);
 			// 生成新类字节码
 			return writer.toByteArray();
 		} catch (Throwable e) {

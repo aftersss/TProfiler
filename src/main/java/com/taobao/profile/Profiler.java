@@ -10,10 +10,13 @@ package com.taobao.profile;
 
 import com.taobao.profile.dependence_query.RecordSlowQuery;
 import com.taobao.profile.dependence_query.SlowQueryData;
+import com.taobao.profile.runtime.MethodCache;
+import com.taobao.profile.runtime.MethodInfo;
+import com.taobao.profile.runtime.ProfStack;
 import com.taobao.profile.runtime.ThreadData;
+import com.taobao.profile.utils.DailyRollingFileWriter;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -42,6 +45,8 @@ public class Profiler {
 	 * 记录慢日志的数组
 	 */
 	public static SlowQueryData[] slowQueryProfile = new SlowQueryData[size];
+
+	private static DailyRollingFileWriter fileWriter = new DailyRollingFileWriter(Manager.getSlowLogPath());
 
 	/**
 	 * 方法开始时调用,采集开始时间
@@ -129,6 +134,11 @@ public class Profiler {
 				frameData[2] = useTime;
 				thrData.profileData.push(frameData);
 			}
+
+			if(thrData.stackNum == 0){
+				outputSlowLog(thrData);
+			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -317,4 +327,84 @@ public class Profiler {
 
 		thrData.profileData.push(record);
 	}
+
+	private static void outputSlowLog(ThreadData thrData){
+		ProfStack<long[]> stack = thrData.profileData;
+		if(stack == null){
+			return;
+		}
+		long[] element = stack.peek();
+
+		long timeConsume = element[2];
+		boolean needLog = false;
+		if (Manager.isNeedNanoTime()) {
+			if(timeConsume > Manager.getProfileThreshold() * 1000000){
+				needLog = true;
+			}
+		}else if(timeConsume > Manager.getProfileThreshold()){
+			needLog = true;
+		}
+		if (needLog) {
+			// 输出日志
+			StringBuilder sb = new StringBuilder();
+			sb.append("method cost:").append(timeConsume).append("ms");
+
+			while((element = stack.pop()) != null){
+				sb.append("\r\n\t");
+				long deep = element[1];
+				for (int i = 0; i < deep; i++) {
+					sb.append("-");
+				}
+				Long consume = element[2];
+				sb.append(consume * 100 / timeConsume).append("%");
+				sb.append("  ").append(consume).append("ms");
+				sb.append("  ").append(getMethodInfo(element[0]));
+			}
+
+			fileWriter.append(sb.toString());
+			fileWriter.flushAppend();
+			//TODO 退出时需要关闭fileWriter
+		}
+
+		thrData.clear();
+	}
+
+	private static String getMethodInfo(long methodId){
+		MethodInfo m = MethodCache.getMethodInfo(methodId);
+		StringBuilder sb = new StringBuilder();
+		appendShortClassName(sb, m.getMClassName());
+		sb.append(".");
+		sb.append(m.getMMethodName());
+
+		return sb.toString();
+	}
+
+	private static void appendShortClassName(StringBuilder sb, String className){
+//		sb.append(className);
+		String arr[] = className.split("\\.");
+		for(int i=0;i<arr.length;i++){
+			if(i < arr.length - 1) {
+				sb.append(arr[i].substring(0, 1)).append(".");
+			}else{
+				sb.append(arr[i]);
+			}
+		}
+	}
+
+	public static void main(String[] args) {
+		String className = ProfStack.class.getName();
+
+		StringBuilder sb = new StringBuilder();
+		String arr[] = className.split("\\.");
+		for(int i=0;i<arr.length;i++){
+			if(i < arr.length - 1) {
+				sb.append(arr[i].substring(0, 1)).append(".");
+			}else{
+				sb.append(arr[i]);
+			}
+		}
+
+		System.out.println(sb.toString());
+	}
+
 }

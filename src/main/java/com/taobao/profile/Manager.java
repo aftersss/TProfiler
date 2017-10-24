@@ -59,6 +59,14 @@ public class Manager {
 	 * 默认方法log位置
 	 */
 	public static String METHOD_LOG_PATH;
+	/**
+	 * 超时log位置
+	 */
+	public static String SLOW_LOG_PATH;
+	/**
+	 * 执行超过多少ms的方法记录超时日志
+	 */
+	public static long PROFILE_THRESHOLD;
 
 	/**
 	 * Manager
@@ -126,6 +134,8 @@ public class Manager {
 		NEED_NANO_TIME = profConfig.isNeedNanoTime();
 		IGNORE_GETSET_METHOD = profConfig.isIgnoreGetSetMethod();
 		METHOD_LOG_PATH = profConfig.getMethodFilePath();
+		SLOW_LOG_PATH = profConfig.getSlowFilePath();
+		PROFILE_THRESHOLD = profConfig.getProfileThreshold();
 		// 判断启动时间是否大于采集结束时间 2012-05-25
 		DateFormat df = new SimpleDateFormat("HH:mm:ss");
 		String now = df.format(new Date());
@@ -148,6 +158,14 @@ public class Manager {
 	 */
 	public static boolean isNeedNanoTime() {
 		return NEED_NANO_TIME;
+	}
+
+	public static String getSlowLogPath() {
+		return SLOW_LOG_PATH;
+	}
+
+	public static long getProfileThreshold() {
+		return PROFILE_THRESHOLD;
 	}
 
 	/**

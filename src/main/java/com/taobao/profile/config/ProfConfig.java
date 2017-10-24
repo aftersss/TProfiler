@@ -65,6 +65,11 @@ public class ProfConfig {
 	private String samplerFilePath;
 
 	/**
+	 * 超时日志文件路径
+	 */
+	private String slowFilePath;
+
+	/**
 	 * 不包括的ClassLoader
 	 */
 	private String excludeClassLoader;
@@ -118,6 +123,11 @@ public class ProfConfig {
 	 * 记录慢查询的时间；超过这个值的查询才会记录；如果设置为-1表示不启用慢日志记录
 	 */
 	private int recordTime;
+
+	/**
+	 * 执行时间超过多少ms记录超时日志
+	 */
+	private long profileThreshold = 500;
 
 	/**
 	 * 构造方法
@@ -221,6 +231,8 @@ public class ProfConfig {
     String logFilePath = properties.getProperty("logFilePath");
     String methodFilePath = properties.getProperty("methodFilePath");
     String samplerFilePath = properties.getProperty("samplerFilePath");
+    this.slowFilePath = properties.getProperty("slowFilePath");
+    String profileThreshold = properties.getProperty("profile.threshold");
     String includePackageStartsWith = properties.getProperty("includePackageStartsWith");
     String eachProfUseTime = properties.getProperty("eachProfUseTime");
     String eachProfIntervalTime = properties.getProperty("eachProfIntervalTime");
@@ -245,6 +257,9 @@ public class ProfConfig {
     setStartProfTime(startProfTime);
     setNeedNanoTime("true".equals(needNanoTime));
     setIgnoreGetSetMethod("true".equals(ignoreGetSetMethod));
+    if(profileThreshold != null && !profileThreshold.isEmpty()) {
+		this.profileThreshold = Long.valueOf(profileThreshold);
+	}
     if (eachProfUseTime == null) {
     	setEachProfUseTime(5);
     } else {
@@ -483,5 +498,13 @@ public class ProfConfig {
 
 	public void setRecordTime(int recordTime) {
 		this.recordTime = recordTime;
+	}
+
+	public long getProfileThreshold() {
+		return profileThreshold;
+	}
+
+	public String getSlowFilePath() {
+		return slowFilePath;
 	}
 }

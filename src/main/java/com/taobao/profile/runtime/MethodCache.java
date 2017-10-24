@@ -36,6 +36,10 @@ public class MethodCache {
 	 */
 	private static DailyRollingFileWriter fileWriter = new DailyRollingFileWriter(Manager.METHOD_LOG_PATH);
 
+	public static MethodInfo getMethodInfo(long methodId){
+		return mCacheMethods.get((int)methodId);
+	}
+
 	/**
 	 * 占位并生成方法ID
 	 * 
