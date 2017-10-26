@@ -129,6 +129,8 @@ public class ProfConfig {
 	 */
 	private long profileThreshold = 500;
 
+	private String profileMethodNames;
+
 	/**
 	 * 构造方法
 	 */
@@ -243,6 +245,7 @@ public class ProfConfig {
     String excludeClassLoader = properties.getProperty("excludeClassLoader");
     String debugMode = properties.getProperty("debugMode");
     String port = properties.getProperty("port");
+    profileMethodNames = properties.getProperty("profile.method.names");
 	String recordTime = properties.getProperty("recordTime","-1");
 
     setPort(port == null ? 50000 : Integer.valueOf(port));
@@ -506,5 +509,9 @@ public class ProfConfig {
 
 	public String getSlowFilePath() {
 		return slowFilePath;
+	}
+
+	public String getProfileMethodNames() {
+		return profileMethodNames;
 	}
 }

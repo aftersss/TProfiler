@@ -8,9 +8,19 @@
 	<packaging>jar</packaging>
 	<dependencies>
 		<dependency>
-			<groupId>org.ow2.asm</groupId>
+			<groupId>asm</groupId>
 			<artifactId>asm</artifactId>
-			<version>6.0</version>
+			<version>3.3.1</version>
+		</dependency>
+		<!--<dependency>-->
+			<!--<groupId>org.ow2.asm</groupId>-->
+			<!--<artifactId>asm</artifactId>-->
+			<!--<version>6.0</version>-->
+		<!--</dependency>-->
+		<dependency>
+			<groupId>net.bytebuddy</groupId>
+			<artifactId>byte-buddy</artifactId>
+			<version>1.7.8</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -54,6 +64,22 @@
 						</manifestEntries>
 					</archive>
 				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<configuration>
+					<attach>true</attach>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>compile</phase>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

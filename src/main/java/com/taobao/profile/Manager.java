@@ -8,9 +8,11 @@
  */
 package com.taobao.profile;
 
+import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Set;
 
 import com.taobao.profile.config.ProfConfig;
 import com.taobao.profile.config.ProfFilter;
@@ -76,7 +78,7 @@ public class Manager {
 	/**
 	 * profile配置
 	 */
-	private ProfConfig profConfig;
+	private static ProfConfig profConfig;
 
 	/**
 	 * 时间标记.当前时间大于开始时间小于结束时间,则可以profile. default:false 不可以profile
@@ -89,7 +91,7 @@ public class Manager {
 	/**
 	 * profile标记.是否可以profile. default:false 不可以profile
 	 */
-	private volatile boolean profileFlag = false;
+	private volatile boolean profileFlag = true;
 
 	/**
 	 * 开始时间结束时间控制线程
@@ -110,26 +112,32 @@ public class Manager {
 	/**
 	 * 启动时间是否大于采集结束时间
 	 */
-	private boolean moreThanEndTime;
+	private static boolean moreThanEndTime;
 	/**
 	 * 是否进入调试模式
 	 */
-	private boolean isDebugMode;
+	private static boolean isDebugMode;
 
 	/**
 	 * 记录慢查询的时间；超过这个值的查询才会记录；如果设置为-1表示不启用慢日志记录
 	 */
 	private static int recordTime;
 
+	private static String[] profileMethodNames = new String[0];
+
 	/**
 	 * 私有构造器
 	 */
 	private Manager() {}
 
+	static{
+		initialization();
+	}
+
 	/**
 	 * 初始化配置
 	 */
-	public void initialization() {
+	public static void initialization() {
 		profConfig = new ProfConfig();
 		NEED_NANO_TIME = profConfig.isNeedNanoTime();
 		IGNORE_GETSET_METHOD = profConfig.isIgnoreGetSetMethod();
@@ -143,6 +151,10 @@ public class Manager {
 		isDebugMode = profConfig.isDebugMode();
         PORT = profConfig.getPort();
 		recordTime = profConfig.getRecordTime();
+		String profileMethodNames = profConfig.getProfileMethodNames();
+		if(profileMethodNames != null && !profileMethodNames.isEmpty()) {
+			Manager.profileMethodNames = profileMethodNames.split(";");
+		}
 		setProfFilter();
 	}
 
@@ -158,6 +170,22 @@ public class Manager {
 	 */
 	public static boolean isNeedNanoTime() {
 		return NEED_NANO_TIME;
+	}
+
+	/**
+	 * 判断方法是否命中需要profile的方法列表
+	 * @param method
+	 * @return
+	 */
+	public static boolean isMeetProfileMethodNames(Method method){
+		String methodName = method.getDeclaringClass().getName() + "." + method.getName();
+		for(String name : profileMethodNames){
+			if(methodName.equals(name)){
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public static String getSlowLogPath() {
@@ -238,7 +266,7 @@ public class Manager {
 	/**
 	 * @return the isDebugMode
 	 */
-	public boolean isDebugMode() {
+	public static boolean isDebugMode() {
 		return isDebugMode;
 	}
 
@@ -254,7 +282,7 @@ public class Manager {
 	 * 设置包名过滤器
 	 * 
 	 */
-	private void setProfFilter() {
+	private static void setProfFilter() {
 		String classLoader = profConfig.getExcludeClassLoader();
 		if (classLoader != null && classLoader.trim().length() > 0) {
 			String[] _classLoader = classLoader.split(";");
@@ -291,9 +319,9 @@ public class Manager {
 		socketThread.setName("TProfiler-InnerSocket");
 		socketThread.setDaemon(true);
 
-		dumpThread = new DataDumpThread(profConfig);
-		dumpThread.setName("TProfiler-DataDump");
-		dumpThread.setDaemon(true);
+//		dumpThread = new DataDumpThread(profConfig);
+//		dumpThread.setName("TProfiler-DataDump");
+//		dumpThread.setDaemon(true);
 
 		samplerThread = new SamplerThread(profConfig);
 		samplerThread.setName("TProfiler-Sampler");
@@ -301,7 +329,7 @@ public class Manager {
 
 		controlThread.start();
 		socketThread.start();
-		dumpThread.start();
+//		dumpThread.start();
 		samplerThread.start();
 	}
 }

@@ -64,6 +64,9 @@ public class ProfStack<E> {
 	public E pop() {
 		E obj;
 		obj = peek();
+		if(obj == null){
+			return null;
+		}
 		removeElementAt(elementCount - 1);
 		return obj;
 	}

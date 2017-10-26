@@ -100,7 +100,7 @@ public class ProfTransformer implements ClassFileTransformer {
 			ClassReader reader = new ClassReader(classfileBuffer);
 			ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS);
 			ClassAdapter adapter = new ProfClassAdapter(writer, className);
-			reader.(adapter, 0);
+			reader.accept(adapter, 0);
 			// 生成新类字节码
 			return writer.toByteArray();
 		} catch (Throwable e) {
